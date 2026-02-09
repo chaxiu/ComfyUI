@@ -227,7 +227,6 @@ class Encoder3d(nn.Module):
     def __init__(self,
                  dim=128,
                  z_dim=4,
-                 input_channels=3,
                  dim_mult=[1, 2, 4, 4],
                  num_res_blocks=2,
                  attn_scales=[],
@@ -246,7 +245,7 @@ class Encoder3d(nn.Module):
         scale = 1.0
 
         # init block
-        self.conv1 = CausalConv3d(input_channels, dims[0], 3, padding=1)
+        self.conv1 = CausalConv3d(3, dims[0], 3, padding=1)
 
         # downsample blocks
         downsamples = []
@@ -332,7 +331,6 @@ class Decoder3d(nn.Module):
     def __init__(self,
                  dim=128,
                  z_dim=4,
-                 output_channels=3,
                  dim_mult=[1, 2, 4, 4],
                  num_res_blocks=2,
                  attn_scales=[],
@@ -380,7 +378,7 @@ class Decoder3d(nn.Module):
         # output blocks
         self.head = nn.Sequential(
             RMS_norm(out_dim, images=False), nn.SiLU(),
-            CausalConv3d(out_dim, output_channels, 3, padding=1))
+            CausalConv3d(out_dim, 3, 3, padding=1))
 
     def forward(self, x, feat_cache=None, feat_idx=[0]):
         ## conv1
@@ -451,7 +449,6 @@ class WanVAE(nn.Module):
                  num_res_blocks=2,
                  attn_scales=[],
                  temperal_downsample=[True, True, False],
-                 image_channels=3,
                  dropout=0.0):
         super().__init__()
         self.dim = dim
@@ -463,11 +460,11 @@ class WanVAE(nn.Module):
         self.temperal_upsample = temperal_downsample[::-1]
 
         # modules
-        self.encoder = Encoder3d(dim, z_dim * 2, image_channels, dim_mult, num_res_blocks,
+        self.encoder = Encoder3d(dim, z_dim * 2, dim_mult, num_res_blocks,
                                  attn_scales, self.temperal_downsample, dropout)
         self.conv1 = CausalConv3d(z_dim * 2, z_dim * 2, 1)
         self.conv2 = CausalConv3d(z_dim, z_dim, 1)
-        self.decoder = Decoder3d(dim, z_dim, image_channels, dim_mult, num_res_blocks,
+        self.decoder = Decoder3d(dim, z_dim, dim_mult, num_res_blocks,
                                  attn_scales, self.temperal_upsample, dropout)
 
     def encode(self, x):
