@@ -1,0 +1,4 @@
+[submodule "custom_nodes/comfyui-inpaint-nodes"]
+	path = custom_nodes/comfyui-inpaint-nodes
+	url = git@github.com:chaxiu/comfyui-inpaint-nodes.git
+	branch = main
